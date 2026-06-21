@@ -1,0 +1,664 @@
+{% extends 'base.html' %}
+
+{% block title %}VedaHerbs - Virtual Ayurvedic Herbal Garden{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Hero Section */
+    .hero {
+        position: relative;
+        border-radius: 30px;
+        padding: 6rem 3rem;
+        text-align: center;
+        background: linear-gradient(135deg, rgba(45, 106, 79, 0.9), rgba(27, 67, 50, 0.95)), 
+                    url('https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=1200') no-repeat center center/cover;
+        color: white;
+        margin-bottom: 3rem;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    
+    .hero-content {
+        max-width: 750px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero h1 {
+        font-size: 3.5rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+    }
+
+    .hero p {
+        font-size: 1.25rem;
+        margin-bottom: 2.5rem;
+        opacity: 0.9;
+        font-weight: 300;
+    }
+
+    .search-bar-container {
+        display: flex;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 40px;
+        padding: 0.5rem;
+        max-width: 600px;
+        margin: 0 auto 2rem auto;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        transition: var(--transition);
+    }
+
+    .search-bar-container:focus-within {
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(45, 106, 79, 0.2);
+    }
+
+    .search-input {
+        flex-grow: 1;
+        border: none;
+        background: none;
+        outline: none;
+        color: white;
+        padding: 0.6rem 1.5rem;
+        font-size: 1.1rem;
+        font-family: var(--font-ui);
+    }
+
+    .search-input::placeholder {
+        font-size: 0.9rem !important;
+        color: rgba(255, 255, 255, 0.6) !important;
+        font-weight: 300 !important;
+        letter-spacing: 0.2px;
+    }
+
+    .btn-search {
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        padding: 0.7rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .btn-search:hover {
+        background-color: var(--primary-light);
+        color: var(--primary-dark);
+    }
+
+    .hero-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+    }
+
+    /* Stat Cards Dashboard */
+    .dashboard-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 2rem;
+        margin-bottom: 4rem;
+    }
+
+    .stat-card {
+        padding: 2rem;
+        border-radius: 20px;
+        text-align: center;
+        transition: var(--transition);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        font-family: var(--font-serif);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    /* Sections Shared styling */
+    .section-title-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 2rem;
+    }
+
+    .section-title-container h2 {
+        font-size: 2.25rem;
+        color: var(--primary-dark);
+        position: relative;
+    }
+    
+    body.dark-mode .section-title-container h2 {
+        color: var(--primary);
+    }
+
+    .section-title-container h2::after {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 3px;
+        background-color: var(--accent);
+        margin-top: 0.5rem;
+    }
+
+    .view-all-link {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        transition: var(--transition);
+    }
+
+    .view-all-link:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+    }
+
+    /* Grid layouts */
+    .plants-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2rem;
+        margin-bottom: 4rem;
+    }
+
+    .plant-card {
+        border-radius: 24px;
+        overflow: hidden;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+
+    .plant-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow);
+    }
+
+    .card-img-wrapper {
+        position: relative;
+        height: 220px;
+        overflow: hidden;
+    }
+
+    .card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: var(--transition);
+    }
+
+    .plant-card:hover .card-img {
+        transform: scale(1.08);
+    }
+
+    .card-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 0.35rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: white;
+        background-color: var(--accent);
+    }
+
+    .card-content {
+        padding: 1.5rem;
+    }
+
+    .card-title {
+        font-size: 1.35rem;
+        margin-bottom: 0.5rem;
+        color: var(--primary-dark);
+    }
+
+    body.dark-mode .card-title {
+        color: var(--primary);
+    }
+
+    .card-scientific {
+        font-style: italic;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .card-text {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid var(--border);
+        padding-top: 1rem;
+    }
+
+    .btn-card-action {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        transition: var(--transition);
+    }
+
+    .btn-card-action:hover {
+        color: var(--primary-dark);
+    }
+
+    /* Carousel section */
+    .carousel-container {
+        display: flex;
+        gap: 2rem;
+        overflow-x: auto;
+        padding: 1rem 0.5rem;
+        margin-bottom: 4rem;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-light) transparent;
+    }
+
+    .carousel-item {
+        flex: 0 0 300px;
+    }
+
+    /* Categories Grid homepage */
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 4rem;
+    }
+
+    .category-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 1.5rem;
+        text-align: center;
+        text-decoration: none;
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        transition: var(--transition);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.01);
+    }
+
+    .category-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary);
+        background-color: var(--primary-light);
+        color: var(--primary-dark) !important;
+        box-shadow: var(--shadow);
+    }
+
+    .category-icon {
+        font-size: 2.25rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .category-name {
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+
+    .category-count {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    /* Charts Section */
+    .analytics-section {
+        margin-bottom: 4rem;
+    }
+
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 2.5rem;
+    }
+
+    .chart-box {
+        padding: 2rem;
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+    }
+
+    .chart-box h3 {
+        text-align: center;
+        font-size: 1.25rem;
+        margin-bottom: 1.5rem;
+        color: var(--primary-dark);
+    }
+    
+    body.dark-mode .chart-box h3 {
+        color: var(--primary);
+    }
+
+    .chart-wrapper {
+        position: relative;
+        height: 260px;
+        width: 100%;
+    }
+
+    /* Recently Viewed Section */
+    .recent-section {
+        display: none; /* Shown dynamically if items exist */
+        margin-bottom: 4rem;
+    }
+
+    @media (max-width: 576px) {
+        .hero {
+            padding: 4rem 1.5rem;
+        }
+        .hero h1 {
+            font-size: 2.25rem;
+        }
+        .hero p {
+            font-size: 1.05rem;
+        }
+        .search-bar-container {
+            flex-direction: column;
+            border-radius: 20px;
+            gap: 0.5rem;
+        }
+        .btn-search {
+            width: 100%;
+        }
+        .hero-buttons {
+            flex-direction: column;
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <!-- Hero Banner -->
+    <div class="hero">
+        <div class="hero-content">
+            <h1>Ancient Ayurvedic Wisdom Meet Modern Science</h1>
+            <p>Explore our Virtual Herbal Garden to discover medicinal plants, identify species, and consult our AI Ayurvedic Assistant for natural health remedies.</p>
+            
+            <!-- Quick Search Bar -->
+            <form action="{% url 'plant_list' %}" method="GET" class="search-bar-container">
+                <input type="text" name="q" class="search-input" placeholder="Search plants by name, scientific name, sanskrit, or uses...">
+                <button type="submit" class="btn-search">Search</button>
+            </form>
+
+            <div class="hero-buttons">
+                <a href="{% url 'plant_list' %}" class="btn-primary" style="padding: 0.8rem 2.2rem; border-radius: 30px;">Explore Plants</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Statistics Section -->
+    <div class="dashboard-stats">
+        <div class="stat-card glass">
+            <div class="stat-number" id="stat-plants" data-val="{{ total_plants }}">0</div>
+            <div class="stat-label">Total Plants Catalogued</div>
+        </div>
+        <div class="stat-card glass">
+            <div class="stat-number" id="stat-categories" data-val="{{ total_categories }}">0</div>
+            <div class="stat-label">Medicinal Categories</div>
+        </div>
+        <div class="stat-card glass">
+            <div class="stat-number" id="stat-uses" data-val="{{ medicinal_uses_count }}">0</div>
+            <div class="stat-label">Medicinal Remedies</div>
+        </div>
+        <div class="stat-card glass">
+            <div class="stat-number" id="stat-featured" data-val="3">0</div>
+            <div class="stat-label">Featured Specimen</div>
+        </div>
+    </div>
+
+    <!-- Featured Plants Section -->
+    <div class="section-title-container">
+        <h2>Featured Specimen</h2>
+        <a href="{% url 'plant_list' %}" class="view-all-link">Browse Library &rarr;</a>
+    </div>
+    
+    <div class="plants-grid">
+        {% for plant in featured_plants %}
+        <div class="plant-card glass" data-id="{{ plant.id }}" style="border-top: 4px solid var(--primary); padding-top: 0.5rem;">
+            <div class="card-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                    <span style="background-color: var(--primary-light); color: var(--primary-dark); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">{{ plant.get_category_display }}</span>
+                </div>
+                <h3 class="card-title">{{ plant.name }}</h3>
+                <span class="card-scientific">{{ plant.scientific_name }}</span>
+                <p class="card-text">{{ plant.description }}</p>
+                <div class="card-footer">
+                    <a href="{% url 'plant_detail' plant.id %}" class="btn-card-action">View details &rarr;</a>
+                    <button class="btn-theme" onclick="VedaStorage.toggleFavorite({{ plant.id }}); this.textContent = VedaStorage.isFavorite({{ plant.id }}) ? '❤️' : '🤍'" title="Bookmark">
+                        🤍
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Trending Carousel Section -->
+    <div class="section-title-container">
+        <h2>Trending Herbs & Trees</h2>
+    </div>
+    <div class="carousel-container">
+        {% for plant in trending_plants %}
+        <div class="carousel-item plant-card glass" data-id="{{ plant.id }}" style="border-top: 4px solid var(--primary); padding-top: 0.25rem;">
+            <div class="card-content" style="padding: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="background-color: var(--primary-light); color: var(--primary-dark); padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">{{ plant.get_category_display }}</span>
+                </div>
+                <h3 class="card-title" style="font-size: 1.15rem;">{{ plant.name }}</h3>
+                <span class="card-scientific" style="margin-bottom: 0.5rem; font-size: 0.8rem;">{{ plant.scientific_name }}</span>
+                <div class="card-footer" style="padding-top: 0.75rem;">
+                    <a href="{% url 'plant_detail' plant.id %}" class="btn-card-action" style="font-size: 0.85rem;">View details &rarr;</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Interactive Category Cards -->
+    <div class="section-title-container">
+        <h2>Medicinal Categories</h2>
+    </div>
+    <div class="categories-grid">
+        {% for cat in categories_list %}
+        <a href="{% url 'plant_list' %}?category={{ cat.key }}" class="category-card glass">
+            <span class="category-icon">
+                {% if cat.key == 'immunity' %}🛡️
+                {% elif cat.key == 'medicinal_herbs' %}🌿
+                {% elif cat.key == 'digestion' %}🥝
+                {% elif cat.key == 'respiratory' %}🫁
+                {% elif cat.key == 'skin' %}🧼
+                {% elif cat.key == 'hair' %}💆
+                {% elif cat.key == 'anti_inflammatory' %}🩹
+                {% elif cat.key == 'stress' %}🧘
+                {% elif cat.key == 'trees' %}🌳
+                {% elif cat.key == 'sacred' %}🙏
+                {% elif cat.key == 'kitchen' %}🍳
+                {% elif cat.key == 'womens_health' %}♀️
+                {% elif cat.key == 'mens_health' %}♂️
+                {% elif cat.key == 'diabetes' %}🩸
+                {% elif cat.key == 'heart' %}❤️
+                {% elif cat.key == 'detox' %}🧪
+                {% elif cat.key == 'aromatic' %}🌸
+                {% elif cat.key == 'traditional' %}🏺
+                {% elif cat.key == 'rare' %}💎
+                {% else %}🌿
+                {% endif %}
+            </span>
+            <span class="category-name">{{ cat.label }}</span>
+            <span class="category-count">{{ cat.count }} Specimen</span>
+        </a>
+        {% endfor %}
+    </div>
+
+
+
+    <!-- Recently Viewed Section -->
+    <div class="recent-section" id="recent-section">
+        <div class="section-title-container">
+            <h2>Recently Viewed Specimen</h2>
+        </div>
+        <div class="plants-grid" id="recent-grid">
+            <!-- JS populated cards -->
+        </div>
+    </div>
+
+    <!-- Database script tag containing clean metadata for JS lookups -->
+    <script id="all-plants-meta" type="application/json">
+        [
+            {% for plant in featured_plants|dictsort:"id" %}
+                {
+                    "id": {{ plant.id }},
+                    "name": "{{ plant.name|escapejs }}",
+                    "scientific_name": "{{ plant.scientific_name|escapejs }}",
+                    "description": "{{ plant.description|truncatewords:20|escapejs }}",
+                    "category": "{{ plant.get_category_display|escapejs }}",
+                    "image_url": "{{ plant.image_url|escapejs }}"
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+            {% if featured_plants and trending_plants %},{% endif %}
+            {% for plant in trending_plants|dictsort:"id" %}
+                {
+                    "id": {{ plant.id }},
+                    "name": "{{ plant.name|escapejs }}",
+                    "scientific_name": "{{ plant.scientific_name|escapejs }}",
+                    "description": "{{ plant.description|truncatewords:20|escapejs }}",
+                    "category": "{{ plant.get_category_display|escapejs }}",
+                    "image_url": "{{ plant.image_url|escapejs }}"
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    </script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Count-up Animation for Statistics
+    function countUpStats() {
+        const stats = [
+            document.getElementById('stat-plants'),
+            document.getElementById('stat-categories'),
+            document.getElementById('stat-uses'),
+            document.getElementById('stat-featured')
+        ];
+        
+        stats.forEach(el => {
+            if (!el) return;
+            const target = parseInt(el.getAttribute('data-val') || '0', 10);
+            let current = 0;
+            const step = Math.ceil(target / 30);
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                el.textContent = current;
+            }, 40);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        countUpStats();
+        renderRecents();
+    });
+
+    // Handle Favorites icon state on initial load
+    document.querySelectorAll('.plant-card').forEach(card => {
+        const favBtn = card.querySelector('button[onclick*="toggleFavorite"]');
+        if (favBtn) {
+            const match = favBtn.getAttribute('onclick').match(/\d+/);
+            if (match) {
+                const id = parseInt(match[0]);
+                favBtn.textContent = VedaStorage.isFavorite(id) ? '❤️' : '🤍';
+            }
+        }
+    });
+
+
+
+    // Render Recently Viewed cards dynamically
+    function renderRecents() {
+        const ids = VedaStorage.getRecents();
+        if (ids.length === 0) return;
+
+        // Parse meta-data block
+        const plantsMeta = JSON.parse(document.getElementById('all-plants-meta').textContent);
+        const recentGrid = document.getElementById('recent-grid');
+        const recentSection = document.getElementById('recent-section');
+        
+        let htmlContent = '';
+        let foundAny = false;
+
+        // Filter and construct cards
+        ids.forEach(id => {
+            const plant = plantsMeta.find(p => p.id === id);
+            if (plant) {
+                foundAny = true;
+                const isFav = VedaStorage.isFavorite(plant.id) ? '❤️' : '🤍';
+                htmlContent += `
+                    <div class="plant-card glass" data-id="${plant.id}" style="border-top: 4px solid var(--primary); padding-top: 0.5rem;">
+                        <div class="card-content">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <span style="background-color: var(--primary-light); color: var(--primary-dark); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">${plant.category}</span>
+                            </div>
+                            <h3 class="card-title">${plant.name}</h3>
+                            <span class="card-scientific">${plant.scientific_name}</span>
+                            <p class="card-text">${plant.description}</p>
+                            <div class="card-footer">
+                                <a href="/plants/${plant.id}/" class="btn-card-action">View details &rarr;</a>
+                                <button class="btn-theme" onclick="VedaStorage.toggleFavorite(${plant.id}); this.textContent = VedaStorage.isFavorite(${plant.id}) ? '❤️' : '🤍'" title="Bookmark">
+                                    ${isFav}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        if (foundAny) {
+            recentGrid.innerHTML = htmlContent;
+            recentSection.style.display = 'block';
+        }
+    }
+</script>
+{% endblock %}

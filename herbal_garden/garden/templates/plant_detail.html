@@ -1,0 +1,692 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ plant.name }} - Ayurvedic Plant Profile{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Detail Header Layout */
+    .detail-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        margin-bottom: 4rem;
+        align-items: start;
+    }
+
+    /* Image Gallery & Lightbox */
+    .gallery-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .main-image-wrapper {
+        height: 400px;
+        border-radius: 24px;
+        overflow: hidden;
+        position: relative;
+        cursor: zoom-in;
+        box-shadow: var(--shadow);
+    }
+
+    .main-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: var(--transition);
+    }
+
+    .main-image-wrapper:hover .main-image {
+        transform: scale(1.03);
+    }
+
+    .thumbnails-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+    }
+
+    .thumb-btn {
+        height: 80px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 2px solid transparent;
+        cursor: pointer;
+        padding: 0;
+        transition: var(--transition);
+        background: none;
+    }
+
+    .thumb-btn.active {
+        border-color: var(--primary);
+        box-shadow: 0 4px 10px rgba(45, 106, 79, 0.2);
+    }
+
+    .thumb-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Lightbox Modal CSS */
+    .lightbox {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.9);
+        z-index: 2000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .lightbox.active {
+        display: flex;
+    }
+
+    .lightbox-img {
+        max-width: 90%;
+        max-height: 85%;
+        border-radius: 8px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: 25px;
+        right: 25px;
+        color: white;
+        background: none;
+        border: none;
+        font-size: 2.5rem;
+        cursor: pointer;
+    }
+
+    /* Identity info & Badges */
+    .identity-box {
+        padding: 1rem 0;
+    }
+
+    .identity-title {
+        font-size: 2.75rem;
+        color: var(--primary-dark);
+        margin-bottom: 0.5rem;
+    }
+    
+    body.dark-mode .identity-title {
+        color: var(--primary);
+    }
+
+    .identity-scientific {
+        font-size: 1.25rem;
+        font-style: italic;
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+        display: block;
+    }
+
+    .multilingual-names {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        padding: 1.25rem;
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
+        background-color: var(--card-bg);
+        border: 1px solid var(--border);
+    }
+
+    .name-pair {
+        font-size: 0.95rem;
+    }
+
+    .name-pair strong {
+        color: var(--accent);
+    }
+
+    .tag-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .badge-info {
+        background-color: var(--primary-light);
+        color: var(--primary-dark);
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    /* Visual indicators & Meters */
+    .indicators-container {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 2rem;
+        margin-top: 1.5rem;
+    }
+
+    .indicator-box {
+        padding: 1.5rem;
+        border-radius: 20px;
+        background-color: var(--card-bg);
+        border: 1px solid var(--border);
+    }
+
+    .indicator-box h4 {
+        font-size: 1.1rem;
+        color: var(--primary-dark);
+        margin-bottom: 1.25rem;
+        font-family: var(--font-ui);
+        font-weight: 600;
+    }
+
+    body.dark-mode .indicator-box h4 {
+        color: var(--primary);
+    }
+
+    /* Dosha Gauges */
+    .dosha-row {
+        margin-bottom: 1rem;
+    }
+
+    .dosha-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .dosha-bar-bg {
+        height: 10px;
+        border-radius: 5px;
+        background-color: var(--bg);
+        overflow: hidden;
+    }
+
+    .dosha-bar-fill {
+        height: 100%;
+        border-radius: 5px;
+        transition: width 1s ease-out;
+    }
+
+    /* Strength bars */
+    .strength-row {
+        margin-bottom: 1rem;
+    }
+
+    .strength-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .strength-bar-bg {
+        height: 8px;
+        border-radius: 4px;
+        background-color: var(--bg);
+        overflow: hidden;
+    }
+
+    .strength-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        background-color: var(--primary);
+        transition: width 1s ease-out;
+    }
+
+    /* Action Toolbar */
+    .action-toolbar {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        margin-bottom: 90px;
+        border-top: 1px solid var(--border);
+        padding-top: 1.5rem;
+    }
+
+    .btn-detail-action {
+        flex-grow: 1;
+        padding: 0.75rem;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: var(--transition);
+        border: 1px solid var(--border);
+        background-color: var(--card-bg);
+        color: var(--text);
+        font-family: var(--font-ui);
+    }
+
+    .btn-detail-action:hover {
+        background-color: var(--primary-light);
+        border-color: var(--primary);
+        color: var(--primary-dark);
+    }
+
+    .btn-detail-action.btn-delete:hover {
+        background-color: #fee2e2;
+        border-color: #f87171;
+        color: #ef4444;
+    }
+    body.dark-mode .btn-detail-action.btn-delete:hover {
+        background-color: #450a0a;
+        border-color: #ef4444;
+        color: #fca5a5;
+    }
+
+    /* Structured Tabs styling */
+    .detail-tabs-section {
+        margin-bottom: 4rem;
+    }
+
+    .tabs-header {
+        display: flex;
+        border-bottom: 2px solid var(--border);
+        margin-bottom: 2rem;
+        overflow-x: auto;
+        gap: 1rem;
+    }
+
+    .tab-trigger {
+        background: none;
+        border: none;
+        outline: none;
+        padding: 1rem 1.5rem;
+        font-family: var(--font-ui);
+        font-weight: 600;
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        cursor: pointer;
+        position: relative;
+        white-space: nowrap;
+        transition: var(--transition);
+    }
+
+    .tab-trigger::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background-color: var(--primary);
+        transform: scaleX(0);
+        transition: var(--transition);
+    }
+
+    .tab-trigger.active {
+        color: var(--primary);
+    }
+
+    .tab-trigger.active::after {
+        transform: scaleX(1);
+    }
+
+    .tab-panel {
+        display: none;
+        animation: fadeIn 0.4s ease;
+    }
+
+    .tab-panel.active {
+        display: block;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+    }
+
+    .info-card {
+        padding: 1.5rem;
+        border-radius: 16px;
+        background-color: var(--card-bg);
+        border: 1px solid var(--border);
+    }
+
+    .info-card h4 {
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        font-family: var(--font-ui);
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.5rem;
+    }
+
+    /* Related recommendations */
+    .related-section {
+        margin-top: 4rem;
+        border-top: 1px solid var(--border);
+        padding-top: 3rem;
+    }
+
+    .related-section .plant-card {
+        cursor: pointer;
+    }
+
+    @media (max-width: 992px) {
+        .detail-header {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        .indicators-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="detail-header">
+        <!-- Left Column: Botanical Profile Summary Box -->
+        <div class="summary-box glass" style="padding: 2.5rem; border-radius: 24px; border-left: 5px solid var(--primary); background: var(--card-bg);">
+            <span style="background-color: var(--primary-light); color: var(--primary-dark); padding: 0.35rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; margin-bottom: 1.5rem;">{{ plant.get_category_display }}</span>
+            <h2 style="font-family: var(--font-serif); font-size: 2.25rem; color: var(--primary-dark); margin-bottom: 0.5rem;">🌿 Botanical Profile</h2>
+            <p style="color: var(--text-muted); font-size: 1.05rem; margin-top: 1rem; line-height: 1.7;">
+                Revered in traditional Ayurveda, <strong>{{ plant.name }}</strong> (scientifically known as <em>{{ plant.scientific_name }}</em>) is a key specimen in the <strong>{{ plant.family|default:'Unknown' }}</strong> family. Native to <strong>{{ plant.native_region|default:'India' }}</strong>, this specimen is historically utilized for its restorative properties.
+            </p>
+            <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                <span class="badge-info">Ayurveda: {{ plant.ayurvedic_classification|default:'Rasayana' }}</span>
+                <span class="badge-info">Active Compounds: {{ plant.active_compounds|default:'Various' }}</span>
+            </div>
+        </div>
+
+        <!-- Right Column: Identity and Gauges -->
+        <div class="identity-box">
+            <h1 class="identity-title">{{ plant.name }}</h1>
+            <span class="identity-scientific">{{ plant.scientific_name }}</span>
+            
+            <div class="tag-container">
+                <span class="badge-info">Family: {{ plant.family|default:'Unknown' }}</span>
+                <span class="badge-info">Region: {{ plant.native_region|default:'India' }}</span>
+            </div>
+
+            <!-- Multilingual Traditional Names -->
+            <div class="multilingual-names">
+                <div class="name-pair">
+                    <strong>Sanskrit:</strong> {{ plant.sanskrit_name|default:'N/A' }}
+                </div>
+                <div class="name-pair">
+                    <strong>Hindi:</strong> {{ plant.hindi_name|default:'N/A' }}
+                </div>
+                <div class="name-pair">
+                    <strong>Telugu:</strong> {{ plant.telugu_name|default:'N/A' }}
+                </div>
+            </div>
+
+            <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 2rem;">
+                {{ plant.description }}
+            </p>
+
+            <!-- Visual Meters Container -->
+            <div class="indicators-container">
+                <!-- Dosha Dials -->
+                <div class="indicator-box">
+                    <h4>⚖️ Dosha Balancing</h4>
+                    
+                    <div class="dosha-row">
+                        <div class="dosha-meta">
+                            <span>Vata Pacifying</span>
+                            <span>{{ plant.vata_pacifying }}%</span>
+                        </div>
+                        <div class="dosha-bar-bg">
+                            <div class="dosha-bar-fill" style="width: {{ plant.vata_pacifying }}%; background-color: #64b5f6;"></div>
+                        </div>
+                    </div>
+
+                    <div class="dosha-row">
+                        <div class="dosha-meta">
+                            <span>Pitta Pacifying</span>
+                            <span>{{ plant.pitta_pacifying }}%</span>
+                        </div>
+                        <div class="dosha-bar-bg">
+                            <div class="dosha-bar-fill" style="width: {{ plant.pitta_pacifying }}%; background-color: #ff8a65;"></div>
+                        </div>
+                    </div>
+
+                    <div class="dosha-row">
+                        <div class="dosha-meta">
+                            <span>Kapha Pacifying</span>
+                            <span>{{ plant.kapha_pacifying }}%</span>
+                        </div>
+                        <div class="dosha-bar-bg">
+                            <div class="dosha-bar-fill" style="width: {{ plant.kapha_pacifying }}%; background-color: #81c784;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medicinal Strength progress -->
+                <div class="indicator-box">
+                    <h4>💪 Medicinal Strength</h4>
+
+                    <div class="strength-row">
+                        <div class="strength-meta">
+                            <span>Immunity Support</span>
+                            <span>{{ plant.strength_immunity }}%</span>
+                        </div>
+                        <div class="strength-bar-bg">
+                            <div class="strength-bar-fill" style="width: {{ plant.strength_immunity }}%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="strength-row">
+                        <div class="strength-meta">
+                            <span>Anti-inflammatory Effect</span>
+                            <span>{{ plant.strength_anti_inflammatory }}%</span>
+                        </div>
+                        <div class="strength-bar-bg">
+                            <div class="strength-bar-fill" style="width: {{ plant.strength_anti_inflammatory }}%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="strength-row">
+                        <div class="strength-meta">
+                            <span>Digestive Support</span>
+                            <span>{{ plant.strength_digestive }}%</span>
+                        </div>
+                        <div class="strength-bar-bg">
+                            <div class="strength-bar-fill" style="width: {{ plant.strength_digestive }}%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="strength-row">
+                        <div class="strength-meta">
+                            <span>Respiratory Support</span>
+                            <span>{{ plant.strength_respiratory }}%</span>
+                        </div>
+                        <div class="strength-bar-bg">
+                            <div class="strength-bar-fill" style="width: {{ plant.strength_respiratory }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons Toolbar -->
+            <div class="action-toolbar">
+                <button class="btn-detail-action" id="btn-fav-toggle" onclick="toggleFavState()">
+                    🤍 Bookmark Specimen
+                </button>
+                {% if plant.is_user_added %}
+                <form id="delete-specimen-form" action="{% url 'delete_plant' plant.id %}" method="POST" style="flex-grow: 1; display: flex;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-detail-action btn-delete" style="width: 100%;">
+                        🗑️ Delete Specimen
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Structured Tabs Section -->
+    <div class="detail-tabs-section">
+        <div class="tabs-header">
+            <button class="tab-trigger active" onclick="switchTab(event, 'tab-profile')">Medicinal Profile</button>
+            <button class="tab-trigger" onclick="switchTab(event, 'tab-cultivation')">Cultivation Guide</button>
+            <button class="tab-trigger" onclick="switchTab(event, 'tab-safety')">Safety & Usage</button>
+            <button class="tab-trigger" onclick="switchTab(event, 'tab-history')">History & Significance</button>
+        </div>
+
+        <!-- Tab 1: Medicinal Profile -->
+        <div class="tab-panel active" id="tab-profile">
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>🌿 Ayurvedic Classification</h4>
+                    <p>{{ plant.ayurvedic_classification|default:'No records available.' }}</p>
+                </div>
+                <div class="info-card">
+                    <h4>🧪 Properties (Rasa, Guna, Virya)</h4>
+                    <p>{{ plant.ayurvedic_properties|default:'No properties catalogued.' }}</p>
+                </div>
+                <div class="info-card" style="grid-column: 1 / -1;">
+                    <h4>📜 Traditional & Modern Applications</h4>
+                    <p><strong>Traditional Uses:</strong> {{ plant.traditional_uses|default:'N/A' }}</p>
+                    <p style="margin-top: 1rem;"><strong>Modern Scientific Applications:</strong> {{ plant.modern_uses|default:'N/A' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Cultivation Guide -->
+        <div class="tab-panel" id="tab-cultivation">
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>☀️ Sunlight & Climate</h4>
+                    <p><strong>Sunlight:</strong> {{ plant.sunlight_requirements|default:'Moderate sun.' }}</p>
+                    <p style="margin-top: 0.5rem;"><strong>Climate:</strong> {{ plant.climate_requirements|default:'Tropical.' }}</p>
+                </div>
+                <div class="info-card">
+                    <h4>💧 Water & Soil</h4>
+                    <p><strong>Water:</strong> {{ plant.water_requirements|default:'Regular watering.' }}</p>
+                    <p style="margin-top: 0.5rem;"><strong>Soil:</strong> {{ plant.soil_requirements|default:'Well-draining soil.' }}</p>
+                </div>
+                <div class="info-card" style="grid-column: 1 / -1;">
+                    <h4>🌳 Growth Conditions & Propagation</h4>
+                    <p>{{ plant.growth_conditions|default:'Grows easily in home planters.' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Safety & Usage -->
+        <div class="tab-panel" id="tab-safety">
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>⚠️ Precautions & Side Effects</h4>
+                    <p><strong>Precautions:</strong> {{ plant.precautions|default:'None reported.' }}</p>
+                    <p style="margin-top: 0.5rem;"><strong>Side Effects:</strong> {{ plant.side_effects|default:'None reported.' }}</p>
+                </div>
+                <div class="info-card">
+                    <h4>🚫 Contraindications</h4>
+                    <p>{{ plant.contraindications|default:'Safe for general consumption.' }}</p>
+                </div>
+                <div class="info-card" style="grid-column: 1 / -1;">
+                    <h4>🍵 Recommended Usage & Preparation</h4>
+                    <p>{{ plant.recommended_usage|default:'Consult an Ayurvedic physician.' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: History & Significance -->
+        <div class="tab-panel" id="tab-history">
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>🏛️ Historical Significance</h4>
+                    <p>{{ plant.historical_significance|default:'N/A' }}</p>
+                </div>
+                <div class="info-card">
+                    <h4>🕉️ Cultural Relevance</h4>
+                    <p>{{ plant.cultural_relevance|default:'N/A' }}</p>
+                </div>
+                <div class="info-card" style="grid-column: 1 / -1;">
+                    <h4>🧘 Importance in Ayurvedic Textbooks</h4>
+                    <p>{{ plant.ayurvedic_importance|default:'Revered as a foundational healing herb.' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Recommendations Section -->
+    <div class="related-section">
+        <h2 style="font-size: 1.85rem; margin-bottom: 2rem; color: var(--primary-dark);">Related Specimen</h2>
+        <div class="plants-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+            {% for r in related_plants %}
+            <div class="plant-card glass" data-id="{{ r.id }}" style="border-top: 4px solid var(--primary); padding-top: 0.5rem;">
+                <div class="card-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <span style="background-color: var(--primary-light); color: var(--primary-dark); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">{{ r.get_category_display }}</span>
+                    </div>
+                    <h3 class="card-title">{{ r.name }}</h3>
+                    <span class="card-scientific">{{ r.scientific_name }}</span>
+                    <p class="card-text">{{ r.description }}</p>
+                    <div class="card-footer">
+                        <a href="{% url 'plant_detail' r.id %}" class="btn-card-action">View Details &rarr;</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Tab switching controller
+    function switchTab(e, tabId) {
+        document.querySelectorAll('.tab-trigger').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+        
+        e.currentTarget.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    // Favorites Button Sync
+    const plantId = {{ plant.id }};
+    const favBtn = document.getElementById('btn-fav-toggle');
+
+    function syncButtons() {
+        // Bookmarks UI
+        if (VedaStorage.isFavorite(plantId)) {
+            favBtn.textContent = '❤️ Bookmarked';
+            favBtn.style.borderColor = 'red';
+        } else {
+            favBtn.textContent = '🤍 Bookmark Specimen';
+            favBtn.style.borderColor = '';
+        }
+    }
+
+    function toggleFavState() {
+        VedaStorage.toggleFavorite(plantId);
+        syncButtons();
+    }
+
+    // Save recently viewed & init state
+    document.addEventListener('DOMContentLoaded', () => {
+        VedaStorage.addRecent(plantId);
+        syncButtons();
+    });
+
+    // Confirm delete specimen
+    const deleteForm = document.getElementById('delete-specimen-form');
+    if (deleteForm) {
+        deleteForm.addEventListener('submit', (e) => {
+            const confirmed = confirm('Are you sure you want to delete this plant specimen?');
+            if (!confirmed) {
+                e.preventDefault();
+            }
+        });
+    }
+</script>
+{% endblock %}

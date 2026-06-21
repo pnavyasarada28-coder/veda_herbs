@@ -1,0 +1,594 @@
+{% extends 'base.html' %}
+
+{% block title %}Medicinal Plant Catalog - VedaHerbs{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Catalog Layout */
+    .catalog-container {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+        margin-top: 1rem;
+    }
+
+    /* Filters Sidebar */
+    .filters-sidebar {
+        padding: 2rem;
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        position: sticky;
+        top: 90px;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+    }
+
+    .filters-sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .filters-sidebar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .filters-sidebar::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+    }
+    .filters-sidebar::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-light);
+    }
+
+    .filters-sidebar h3 {
+        color: var(--primary-dark);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.35rem;
+    }
+    
+    body.dark-mode .filters-sidebar h3 {
+        color: var(--primary);
+    }
+
+    .filter-group {
+        margin-bottom: 1.75rem;
+    }
+
+    .filter-label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 0.6rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Search Control Input styling */
+    .search-wrapper {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    
+    .search-control-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.25rem;
+        color: var(--text-muted);
+    }
+
+    .search-control-input {
+        width: 100%;
+        padding: 0.85rem 1rem 0.85rem 2.8rem;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background-color: var(--bg);
+        color: var(--text);
+        font-size: 1.05rem;
+        font-family: var(--font-ui);
+        outline: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        transition: var(--transition);
+    }
+
+    .search-control-input::placeholder {
+        font-size: 0.85rem !important;
+        color: var(--text-muted) !important;
+        opacity: 0.55 !important;
+        font-weight: 300 !important;
+    }
+    
+    .search-control-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 6px 20px rgba(45, 106, 79, 0.08);
+    }
+
+    /* Interactive Filters Chips */
+    .filter-chips-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding-top: 0.25rem;
+    }
+
+    #category-chips.filter-chips-container {
+        max-height: 180px;
+        overflow-y: auto;
+        padding: 0.6rem;
+        background-color: rgba(0, 0, 0, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+    }
+
+    body.dark-mode #category-chips.filter-chips-container {
+        background-color: rgba(255, 255, 255, 0.01);
+    }
+
+    #category-chips::-webkit-scrollbar {
+        width: 4px;
+    }
+    #category-chips::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    #category-chips::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 2px;
+    }
+    #category-chips::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+    }
+
+    .chip {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-family: var(--font-ui);
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .chip:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background-color: var(--primary-light);
+    }
+
+    .chip.active {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        color: white !important;
+        box-shadow: 0 4px 10px rgba(45, 106, 79, 0.15);
+    }
+
+    .btn-reset {
+        width: 100%;
+        padding: 0.65rem;
+        border-radius: 12px;
+        background-color: var(--primary-light);
+        color: var(--primary-dark);
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        margin-top: 1rem;
+    }
+
+    .btn-reset:hover {
+        background-color: var(--primary);
+        color: white;
+    }
+
+    /* Plant Grid and Cards */
+    .catalog-main {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .catalog-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .catalog-header h2 {
+        font-size: 2rem;
+        color: var(--primary-dark);
+    }
+    
+    body.dark-mode .catalog-header h2 {
+        color: var(--primary);
+    }
+
+    .results-count {
+        font-size: 0.95rem;
+        color: var(--text-muted);
+    }
+
+    .plants-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        min-height: 400px;
+    }
+
+    .plant-card {
+        border-radius: 20px;
+        overflow: hidden;
+        transition: var(--transition);
+        position: relative;
+        cursor: pointer;
+    }
+
+    .plant-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow);
+    }
+
+    .card-img-wrapper {
+        position: relative;
+        height: 180px;
+        overflow: hidden;
+    }
+
+    .card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: var(--transition);
+    }
+
+    .plant-card:hover .card-img {
+        transform: scale(1.08);
+    }
+
+    .card-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 0.35rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: white;
+        background-color: var(--primary);
+    }
+
+    .card-content {
+        padding: 1.25rem;
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+        color: var(--primary-dark);
+    }
+    
+    body.dark-mode .card-title {
+        color: var(--primary);
+    }
+
+    .card-scientific {
+        font-style: italic;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    .card-text {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-bottom: 1.25rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid var(--border);
+        padding-top: 0.85rem;
+        gap: 0.5rem;
+    }
+
+    .btn-card-action {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: var(--transition);
+    }
+
+    .btn-card-action:hover {
+        color: var(--primary-dark);
+    }
+
+    /* Skeleton Loading CSS */
+    .skeleton-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 1.25rem;
+        border: 1px solid var(--border);
+    }
+
+    .skeleton-img {
+        height: 150px;
+        background: linear-gradient(90deg, var(--border) 25%, var(--bg) 50%, var(--border) 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+    .skeleton-line {
+        height: 14px;
+        background: linear-gradient(90deg, var(--border) 25%, var(--bg) 50%, var(--border) 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+        margin-bottom: 0.5rem;
+        border-radius: 4px;
+    }
+
+    .skeleton-line.short { width: 40%; }
+    .skeleton-line.medium { width: 70%; }
+    .skeleton-line.long { width: 90%; }
+
+    @keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    @media (max-width: 992px) {
+        .catalog-container {
+            grid-template-columns: 1fr;
+        }
+        .filters-sidebar {
+            position: relative;
+            top: 0;
+            margin-bottom: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="catalog-header">
+        <div>
+            <h2>Ayurvedic Plant Library</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Explore descriptions, doshas, and medicinal properties.</p>
+        </div>
+        <span class="results-count" id="results-count">Showing {{ plants|length }} specimen</span>
+    </div>
+
+    <div class="catalog-container">
+        <!-- Advanced Filters Sidebar (Chips search UI) -->
+        <aside class="filters-sidebar glass">
+            <h3>🔍 Search Filters</h3>
+            
+            <div class="filter-group">
+                <label class="filter-label" for="search-input">Search Text</label>
+                <div class="search-wrapper">
+                    <span class="search-control-icon">🔍</span>
+                    <input type="text" id="search-input" class="search-control-input" placeholder="Type name, scientific, uses..." value="{{ request.GET.q|default:'' }}">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Herbal Category</label>
+                <div class="filter-chips-container" id="category-chips">
+                    <button class="chip active" data-val="">All</button>
+                    {% for cat in categories %}
+                    <button class="chip" data-val="{{ cat.key }}">{{ cat.label }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Dosha Balancing</label>
+                <div class="filter-chips-container" id="dosha-chips">
+                    <button class="chip active" data-val="">All</button>
+                    <button class="chip" data-val="vata">Vata</button>
+                    <button class="chip" data-val="pitta">Pitta</button>
+                    <button class="chip" data-val="kapha">Kapha</button>
+                </div>
+            </div>
+
+
+
+            <button class="btn-reset" id="btn-reset">Reset Filters</button>
+        </aside>
+
+        <!-- Plants Catalog List -->
+        <div class="catalog-main">
+            <div class="plants-grid" id="plants-grid">
+                {% for plant in plants %}
+                <div class="plant-card glass" data-id="{{ plant.id }}" style="border-top: 4px solid var(--primary); padding-top: 0.5rem;">
+                    <div class="card-content">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <span style="background-color: var(--primary-light); color: var(--primary-dark); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">{{ plant.get_category_display }}</span>
+                        </div>
+                        <h3 class="card-title">{{ plant.name }}</h3>
+                        <span class="card-scientific">{{ plant.scientific_name }}</span>
+                        <p class="card-text">{{ plant.description }}</p>
+                        
+                        <div class="card-footer">
+                            <a href="{% url 'plant_detail' plant.id %}" class="btn-card-action">Details &rarr;</a>
+                            
+                            <!-- Favorite Bookmark Button -->
+                            <button class="btn-theme" onclick="handleFavoriteToggle({{ plant.id }}, this)" title="Bookmark">
+                                🤍
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="text-align: center; grid-column: 1/-1; padding: 3rem; color: var(--text-muted);">No plants found matching these filters.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const searchInput = document.getElementById('search-input');
+    const resetBtn = document.getElementById('btn-reset');
+    const plantsGrid = document.getElementById('plants-grid');
+    const resultsCount = document.getElementById('results-count');
+
+    // Values of active filters
+    let activeCategory = '';
+    let activeDosha = '';
+
+    // Set up chips toggle listeners
+    function initChips(containerId, callback) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const chips = container.querySelectorAll('.chip');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                chips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                callback(chip.getAttribute('data-val'));
+            });
+        });
+    }
+
+    initChips('category-chips', (val) => {
+        activeCategory = val;
+        fetchFilteredPlants();
+    });
+
+    initChips('dosha-chips', (val) => {
+        activeDosha = val;
+        fetchFilteredPlants();
+    });
+
+
+
+    // Debouncer for search text query input
+    let debounceTimer;
+    
+    function triggerDebounceSearch() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            fetchFilteredPlants();
+        }, 350);
+    }
+
+    searchInput.addEventListener('input', triggerDebounceSearch);
+
+    resetBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        activeCategory = '';
+        activeDosha = '';
+        
+        // Reset chip active states
+        document.querySelectorAll('.filter-chips-container').forEach(container => {
+            container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            container.querySelector('.chip[data-val=""]').classList.add('active');
+        });
+
+        fetchFilteredPlants();
+    });
+
+    async function fetchFilteredPlants() {
+        // Show Skeleton loaders
+        let skeletonContent = '';
+        for (let i = 0; i < 6; i++) {
+            skeletonContent += `
+                <div class="skeleton-card">
+                    <div class="skeleton-img"></div>
+                    <div class="skeleton-line short"></div>
+                    <div class="skeleton-line long"></div>
+                    <div class="skeleton-line medium"></div>
+                </div>
+            `;
+        }
+        plantsGrid.innerHTML = skeletonContent;
+
+        const query = encodeURIComponent(searchInput.value.trim());
+        const cat = encodeURIComponent(activeCategory);
+        const dosha = encodeURIComponent(activeDosha);
+
+        try {
+            const url = `/api/plants/?q=${query}&category=${cat}&dosha=${dosha}`;
+            const response = await fetch(url, {
+                headers: {
+                    'x-requested-with': 'XMLHttpRequest'
+                }
+            });
+            const data = await response.json();
+            renderGrid(data.plants);
+        } catch (error) {
+            plantsGrid.innerHTML = `<p style="text-align:center; grid-column:1/-1; color: red; padding: 2rem;">Error fetching data. Please try again.</p>`;
+            console.error(error);
+        }
+    }
+
+    function renderGrid(plants) {
+        resultsCount.textContent = `Showing ${plants.length} specimen`;
+        
+        if (plants.length === 0) {
+            plantsGrid.innerHTML = `<p style="text-align: center; grid-column: 1/-1; padding: 3rem; color: var(--text-muted);">No plants found matching these filters.</p>`;
+            return;
+        }
+
+        let html = '';
+        plants.forEach(plant => {
+            const isFav = VedaStorage.isFavorite(plant.id) ? '❤️' : '🤍';
+
+            html += `
+                <div class="plant-card glass" data-id="${plant.id}" style="border-top: 4px solid var(--primary); padding-top: 0.5rem;">
+                    <div class="card-content">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <span style="background-color: var(--primary-light); color: var(--primary-dark); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">${plant.category_label}</span>
+                        </div>
+                        <h3 class="card-title">${plant.name}</h3>
+                        <span class="card-scientific">${plant.scientific_name}</span>
+                        <p class="card-text">${plant.description}</p>
+                        
+                        <div class="card-footer">
+                            <a href="/plants/${plant.id}/" class="btn-card-action">Details &rarr;</a>
+                            <button class="btn-theme" onclick="handleFavoriteToggle(${plant.id}, this)" title="Bookmark">
+                                ${isFav}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        plantsGrid.innerHTML = html;
+    }
+
+    function handleFavoriteToggle(id, btn) {
+        const added = VedaStorage.toggleFavorite(id);
+        btn.textContent = added ? '❤️' : '🤍';
+    }
+
+    // Synchronize bookmarks on page ready
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.plant-card').forEach(card => {
+            const id = parseInt(card.getAttribute('data-id'));
+            const favBtn = card.querySelector('button[onclick*="handleFavoriteToggle"]');
+            if (favBtn) {
+                favBtn.textContent = VedaStorage.isFavorite(id) ? '❤️' : '🤍';
+            }
+        });
+    });
+</script>
+{% endblock %}

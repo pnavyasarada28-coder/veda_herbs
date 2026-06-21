@@ -1,0 +1,486 @@
+{% extends 'base.html' %}
+
+{% block title %}Add New Plant - VedaHerbs{% endblock %}
+
+{% block extra_head %}
+<style>
+    .form-container {
+        max-width: 700px;
+        margin: 2rem auto;
+        padding: 2.5rem;
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+    }
+
+    .form-container h2 {
+        font-family: var(--font-serif);
+        font-size: 2.25rem;
+        color: var(--primary-dark);
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    body.dark-mode .form-container h2 {
+        color: var(--primary);
+    }
+
+    /* Progress Indicators for steps */
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 3rem;
+        position: relative;
+        padding: 0 10px;
+    }
+
+    .step-indicator::before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        right: 20px;
+        height: 3px;
+        background-color: var(--border);
+        z-index: 1;
+    }
+
+    .step-indicator-bar {
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        height: 3px;
+        background-color: var(--primary);
+        z-index: 2;
+        width: 0%;
+        transition: var(--transition);
+    }
+
+    .indicator-node {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: var(--card-bg);
+        border: 3px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        font-weight: bold;
+        z-index: 3;
+        transition: var(--transition);
+        color: var(--text-muted);
+    }
+
+    .indicator-node.active {
+        border-color: var(--primary);
+        color: var(--primary);
+        background-color: var(--primary-light);
+    }
+
+    .indicator-node.completed {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    /* Form Panel Sections */
+    .form-panel {
+        display: none;
+        animation: fadeIn 0.4s ease;
+    }
+
+    .form-panel.active {
+        display: block;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        outline: none;
+        background-color: var(--bg);
+        color: var(--text);
+        font-family: var(--font-ui);
+        font-size: 0.95rem;
+        transition: var(--transition);
+    }
+
+    .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.15);
+    }
+
+    .form-row-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+
+    .form-row-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    /* Range inputs styling */
+    .range-value-display {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+    }
+
+    /* Form actions */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2.5rem;
+        border-top: 1px solid var(--border);
+        padding-top: 1.5rem;
+    }
+
+    .btn-action-form {
+        padding: 0.7rem 1.8rem;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        font-family: var(--font-ui);
+    }
+
+    .btn-action-form.prev {
+        background-color: var(--border);
+        color: var(--text);
+        border: none;
+    }
+
+    .btn-action-form.prev:hover {
+        background-color: var(--text-muted);
+        color: white;
+    }
+
+    .btn-action-form.next {
+        background-color: var(--primary);
+        color: white;
+        border: none;
+    }
+
+    .btn-action-form.next:hover {
+        background-color: var(--primary-dark);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container glass">
+    <h2>🌿 Add Plant Specimen</h2>
+
+    <!-- Step Progress Bar -->
+    <div class="step-indicator">
+        <div class="step-indicator-bar" id="step-progress-bar"></div>
+        <div class="indicator-node active" data-step="1">1</div>
+        <div class="indicator-node" data-step="2">2</div>
+        <div class="indicator-node" data-step="3">3</div>
+        <div class="indicator-node" data-step="4">4</div>
+    </div>
+
+    <form method="POST" id="wizard-form">
+        {% csrf_token %}
+
+        <!-- Step 1: Basic Identity -->
+        <div class="form-panel active" data-step="1">
+            <h3 style="margin-bottom: 1.5rem; font-family: var(--font-serif); color: var(--accent);">Step 1: Botanical Identity</h3>
+            
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label class="form-label" for="id_name">Common Name *</label>
+                    <input type="text" name="name" id="id_name" class="form-control" required placeholder="e.g. Tulsi">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="id_scientific_name">Scientific Name *</label>
+                    <input type="text" name="scientific_name" id="id_scientific_name" class="form-control" required placeholder="e.g. Ocimum tenuiflorum">
+                </div>
+            </div>
+
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label class="form-label" for="id_sanskrit_name">Sanskrit Name</label>
+                    <input type="text" name="sanskrit_name" id="id_sanskrit_name" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="id_hindi_name">Hindi Name</label>
+                    <input type="text" name="hindi_name" id="id_hindi_name" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="id_telugu_name">Telugu Name</label>
+                    <input type="text" name="telugu_name" id="id_telugu_name" class="form-control">
+                </div>
+            </div>
+
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label class="form-label" for="id_family">Botanical Family</label>
+                    <input type="text" name="family" id="id_family" class="form-control" placeholder="e.g. Lamiaceae">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="id_native_region">Native Region</label>
+                    <input type="text" name="native_region" id="id_native_region" class="form-control" placeholder="e.g. India">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="id_category">Herbal Category *</label>
+                <select name="category" id="id_category" class="form-control" required>
+                    {% for key, val in form.fields.category.choices %}
+                    <option value="{{ key }}">{{ val }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Step 2: Description & Traditional Info -->
+        <div class="form-panel" data-step="2">
+            <h3 style="margin-bottom: 1.5rem; font-family: var(--font-serif); color: var(--accent);">Step 2: Medicinal Description</h3>
+            
+            <div class="form-group">
+                <label class="form-label" for="id_description">Brief Description *</label>
+                <textarea name="description" id="id_description" class="form-control" required placeholder="Describe the plant's overall appearance and primary health advantages..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="id_uses">Primary Uses Summary *</label>
+                <textarea name="uses" id="id_uses" class="form-control" required placeholder="Summarize what this plant is primarily used for (coughs, joint pains, skincare)..."></textarea>
+            </div>
+
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label class="form-label" for="id_ayurvedic_classification">Ayurvedic Classification</label>
+                    <input type="text" name="ayurvedic_classification" id="id_ayurvedic_classification" class="form-control" placeholder="e.g. Rasayana, Balya">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="id_active_compounds">Active Compounds</label>
+                    <input type="text" name="active_compounds" id="id_active_compounds" class="form-control" placeholder="e.g. Curcumin, Vasicine">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="id_ayurvedic_properties">Ayurvedic Properties (Rasa, Guna, Virya)</label>
+                <textarea name="ayurvedic_properties" id="id_ayurvedic_properties" class="form-control" placeholder="Rasa: Tikta; Guna: Laghu; Virya: Ushna; Vipaka: Katu"></textarea>
+            </div>
+
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label class="form-label" for="id_traditional_uses">Traditional Preparation</label>
+                    <textarea name="traditional_uses" id="id_traditional_uses" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="id_modern_uses">Modern Scientific Uses</label>
+                    <textarea name="modern_uses" id="id_modern_uses" class="form-control"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Health Metrics & Strengths -->
+        <div class="form-panel" data-step="3">
+            <h3 style="margin-bottom: 1.5rem; font-family: var(--font-serif); color: var(--accent);">Step 3: Doshas & Health Strengths</h3>
+            
+            <h4 style="margin-bottom: 1rem; color: var(--primary-dark);">Dosha Impact Scores (0-100)</h4>
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label class="form-label">Vata Level</label>
+                    <input type="number" name="dosha_vata" class="form-control" min="0" max="100" value="50">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pitta Level</label>
+                    <input type="number" name="dosha_pitta" class="form-control" min="0" max="100" value="50">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kapha Level</label>
+                    <input type="number" name="dosha_kapha" class="form-control" min="0" max="100" value="50">
+                </div>
+            </div>
+
+            <h4 style="margin-top: 1.5rem; margin-bottom: 1rem; color: var(--primary-dark);">Medicinal Support Strength (0-100%)</h4>
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label class="form-label">Immunity Support</label>
+                    <input type="number" name="strength_immunity" class="form-control" min="0" max="100" value="50">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Anti-inflammatory Strength</label>
+                    <input type="number" name="strength_anti_inflammatory" class="form-control" min="0" max="100" value="50">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Digestive Strength</label>
+                    <input type="number" name="strength_digestive" class="form-control" min="0" max="100" value="50">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Respiratory Strength</label>
+                    <input type="number" name="strength_respiratory" class="form-control" min="0" max="100" value="50">
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Cultivation, Safety, History -->
+        <div class="form-panel" data-step="4">
+            <h3 style="margin-bottom: 1.5rem; font-family: var(--font-serif); color: var(--accent);">Step 4: Cultivation & Safety</h3>
+            
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label class="form-label" for="id_sunlight_requirements">Sunlight Requirements</label>
+                    <input type="text" name="sunlight_requirements" id="id_sunlight_requirements" class="form-control" placeholder="e.g. Full sun">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="id_water_requirements">Water Requirements</label>
+                    <input type="text" name="water_requirements" id="id_water_requirements" class="form-control" placeholder="e.g. Low water">
+                </div>
+            </div>
+
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label class="form-label" for="id_soil_requirements">Soil Requirements</label>
+                    <input type="text" name="soil_requirements" id="id_soil_requirements" class="form-control" placeholder="e.g. Sandy loam">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="id_climate_requirements">Climate Requirements</label>
+                    <input type="text" name="climate_requirements" id="id_climate_requirements" class="form-control" placeholder="e.g. Tropical hot">
+                </div>
+            </div>
+
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label class="form-label" for="id_precautions">Precautions</label>
+                    <textarea name="precautions" id="id_precautions" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="id_contraindications">Contraindications</label>
+                    <textarea name="contraindications" id="id_contraindications" class="form-control"></textarea>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="id_historical_significance">Historical Significance & Cultural Relevance</label>
+                <textarea name="historical_significance" id="id_historical_significance" class="form-control" placeholder="Historical references, cultural usages, Vedic texts references..."></textarea>
+            </div>
+        </div>
+
+        <!-- Wizard Navigation Toolbar -->
+        <div class="form-actions">
+            <button type="button" class="btn-action-form prev" id="btn-wizard-prev" style="display: none;">Back</button>
+            <button type="button" class="btn-action-form next" id="btn-wizard-next" style="margin-left: auto;">Next Step</button>
+            <button type="submit" class="btn-action-form next" id="btn-wizard-submit" style="display: none; margin-left: auto;">Save Specimen</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let currentStep = 1;
+    const totalSteps = 4;
+
+    const panels = document.querySelectorAll('.form-panel');
+    const nodes = document.querySelectorAll('.indicator-node');
+    const progressBar = document.getElementById('step-progress-bar');
+    
+    const prevBtn = document.getElementById('btn-wizard-prev');
+    const nextBtn = document.getElementById('btn-wizard-next');
+    const submitBtn = document.getElementById('btn-wizard-submit');
+    const form = document.getElementById('wizard-form');
+
+    function updateWizardUI() {
+        // Hide/Show Panels
+        panels.forEach(p => p.classList.remove('active'));
+        document.querySelector(`.form-panel[data-step="${currentStep}"]`).classList.add('active');
+
+        // Progress Bar Width
+        const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+        progressBar.style.width = `${progressPercentage}%`;
+
+        // Update indicator nodes
+        nodes.forEach(node => {
+            const stepNum = parseInt(node.getAttribute('data-step'));
+            node.classList.remove('active', 'completed');
+            if (stepNum === currentStep) {
+                node.classList.add('active');
+            } else if (stepNum < currentStep) {
+                node.classList.add('completed');
+            }
+        });
+
+        // Hide/Show Buttons
+        if (currentStep === 1) {
+            prevBtn.style.display = 'none';
+        } else {
+            prevBtn.style.display = 'inline-block';
+        }
+
+        if (currentStep === totalSteps) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'inline-block';
+        } else {
+            nextBtn.style.display = 'inline-block';
+            submitBtn.style.display = 'none';
+        }
+    }
+
+    nextBtn.addEventListener('click', () => {
+        // Validate required fields in the current panel before moving forward
+        const activePanel = document.querySelector(`.form-panel[data-step="${currentStep}"]`);
+        const inputs = activePanel.querySelectorAll('input[required], textarea[required], select[required]');
+        
+        let valid = true;
+        inputs.forEach(input => {
+            if (!input.value.trim()) {
+                input.reportValidity();
+                valid = false;
+            }
+        });
+
+        if (valid) {
+            currentStep++;
+            updateWizardUI();
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        currentStep--;
+        updateWizardUI();
+    });
+
+    // Handle submit checks
+    form.addEventListener('submit', (e) => {
+        // Final sanity checks on required fields
+        const allRequired = form.querySelectorAll('input[required], textarea[required], select[required]');
+        let valid = true;
+        allRequired.forEach(input => {
+            if (!input.value.trim()) {
+                input.reportValidity();
+                valid = false;
+            }
+        });
+        if (!valid) {
+            e.preventDefault();
+        }
+    });
+</script>
+{% endblock %}

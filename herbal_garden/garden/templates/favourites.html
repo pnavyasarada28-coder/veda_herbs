@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block title %}My Favourites - VedaHerbs{% endblock %}
+
+{% block extra_head %}
+<style>
+    .fav-container {
+        padding: 1rem 0;
+    }
+
+    .fav-header {
+        margin-bottom: 3rem;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1.5rem;
+    }
+
+    .fav-header h2 {
+        font-size: 2.5rem;
+        color: var(--primary-dark);
+        margin-bottom: 0.5rem;
+    }
+    
+    body.dark-mode .fav-header h2 {
+        color: var(--primary);
+    }
+
+    .fav-header p {
+        color: var(--text-muted);
+        font-size: 1rem;
+    }
+
+    .empty-fav-state {
+        text-align: center;
+        padding: 5rem 2rem;
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        background-color: var(--card-bg);
+        border: 1px dashed var(--primary);
+        max-width: 600px;
+        margin: 2rem auto;
+    }
+
+    .empty-fav-state h3 {
+        font-family: var(--font-serif);
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+        color: var(--primary-dark);
+    }
+
+    .empty-fav-state p {
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+    }
+
+    .plants-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        min-height: 200px;
+    }
+
+    .plant-card {
+        border-radius: 20px;
+        overflow: hidden;
+        transition: var(--transition);
+        position: relative;
+        cursor: pointer;
+    }
+
+    .plant-card.fade-out {
+        opacity: 0;
+        transform: scale(0.9);
+        transition: all 0.4s ease;
+    }
+
+    .plant-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow);
+    }
+
+    .card-img-wrapper {
+        position: relative;
+        height: 180px;
+        overflow: hidden;
+    }
+
+    .card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: var(--transition);
+    }
+
+    .card-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 0.35rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: white;
+        background-color: var(--primary);
+    }
+
+    .card-content {
+        padding: 1.25rem;
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+        color: var(--primary-dark);
+    }
+    
+    body.dark-mode .card-title {
+        color: var(--primary);
+    }
+
+    .card-scientific {
+        font-style: italic;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    .card-text {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-bottom: 1.25rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid var(--border);
+        padding-top: 0.85rem;
+    }
+
+    .btn-card-action {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: var(--transition);
+    }
+
+    .btn-card-action:hover {
+        color: var(--primary-dark);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fav-container">
+    <div class="fav-header">
+        <h2>My Herbal Collection</h2>
+        <p>Your saved plants and personal herbal catalog.</p>
+    </div>
+
+    <!-- Empty state element -->
+    <div class="empty-fav-state glass" id="empty-state" style="display: none;">
+        <h3>Your Garden is Empty 🌸</h3>
+        <p>Start exploring our catalog and click the heart icon on any specimen to save them here for quick access.</p>
+        <a href="{% url 'plant_list' %}" class="btn-primary">Explore Plant Library</a>
+    </div>
+
+    <!-- Grid containing favorites -->
+    <div class="plants-grid" id="fav-grid">
+        <!-- Javascript populated cards -->
+    </div>
+</div>
+
+<!-- All plants metadata block -->
+<script id="all-plants-meta" type="application/json">
+    [
+        {% for plant in all_plants %}
+            {
+                "id": {{ plant.id }},
+                "name": "{{ plant.name|escapejs }}",
+                "scientific_name": "{{ plant.scientific_name|escapejs }}",
+                "description": "{{ plant.description|truncatewords:20|escapejs }}",
+                "category": "{{ plant.get_category_display|escapejs }}",
+                "image_url": "{{ plant.image_url|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]
+</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        renderFavorites();
+    });
+
+    function renderFavorites() {
+        const favIds = VedaStorage.getFavorites();
+        const allPlants = JSON.parse(document.getElementById('all-plants-meta').textContent);
+        const grid = document.getElementById('fav-grid');
+        const emptyState = document.getElementById('empty-state');
+
+        if (favIds.length === 0) {
+            grid.innerHTML = '';
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+        let htmlContent = '';
+
+        favIds.forEach(id => {
+            const plant = allPlants.find(p => p.id === id);
+            if (plant) {
+                htmlContent += `
+                    <div class="plant-card glass" id="fav-card-${plant.id}" data-id="${plant.id}" style="border-top: 4px solid var(--primary); padding-top: 0.5rem;">
+                        <div class="card-content">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <span style="background-color: var(--primary-light); color: var(--primary-dark); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">${plant.category}</span>
+                            </div>
+                            <h3 class="card-title">${plant.name}</h3>
+                            <span class="card-scientific">${plant.scientific_name}</span>
+                            <p class="card-text">${plant.description}</p>
+                            <div class="card-footer">
+                                <a href="/plants/${plant.id}/" class="btn-card-action">Details &rarr;</a>
+                                <button class="btn-theme" onclick="removeFavorite(${plant.id})" title="Remove Bookmark">
+                                    ❤️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        grid.innerHTML = htmlContent;
+    }
+
+    function removeFavorite(id) {
+        // Toggle the favorite state
+        VedaStorage.toggleFavorite(id);
+        
+        // Find card element
+        const card = document.getElementById(`fav-card-${id}`);
+        if (card) {
+            // Apply nice fade-out transition
+            card.classList.add('fade-out');
+            setTimeout(() => {
+                renderFavorites(); // Rerender after fade completes
+            }, 400);
+        } else {
+            renderFavorites();
+        }
+    }
+</script>
+{% endblock %}

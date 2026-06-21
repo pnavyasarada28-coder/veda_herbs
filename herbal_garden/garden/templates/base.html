@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VedaHerbs - Ayurvedic Plant Portal{% endblock %}</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Explore ancient Ayurvedic wisdom and modern scientific uses of medicinal plants. Search, compare, and get AI remedies.">
+    <meta name="keywords" content="Ayurveda, medicinal plants, herbal garden, Tulsi, Neem, Ashwagandha, Vata, Pitta, Kapha, herbal remedies">
+    <meta name="author" content="VedaHerbs Team">
+    <meta property="og:title" content="VedaHerbs - Ayurvedic Plant Portal">
+    <meta property="og:description" content="Discover natural remedies and holistic healing with medicinal plants.">
+    <meta property="og:type" content="website">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- CSS Variables and Style Reset -->
+    <style>
+        :root {
+            --primary: #2d6a4f;        /* Forest Green */
+            --primary-dark: #1b4332;   /* Deep Forest Green */
+            --primary-light: #d8f3dc;  /* Sage Green Tint */
+            --accent: #8d6e63;         /* Earthy Brown */
+            --bg: #faf9f6;             /* Herbal Cream */
+            --card-bg: #ffffff;
+            --text: #2f3e35;           /* Soft Dark Green-Gray */
+            --text-muted: #5c6f64;
+            --border: #e2e8f0;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --font-ui: 'Outfit', sans-serif;
+            --font-serif: 'Playfair Display', serif;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        body.dark-mode {
+            --primary: #52b788;
+            --primary-dark: #74c69d;
+            --primary-light: #1b4332;
+            --accent: #d7ccc8;
+            --bg: #0b110e;             /* Nature Dark Black */
+            --card-bg: #121b16;        /* Dark Green-Grey */
+            --text: #e8f5e9;
+            --text-muted: #a3b8ad;
+            --border: #202e26;
+            --shadow: 0 10px 35px rgba(0, 0, 0, 0.3);
+            --glass-bg: rgba(18, 27, 22, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-ui);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+        }
+
+        input::placeholder, textarea::placeholder {
+            font-size: 0.85rem !important;
+            color: var(--text-muted) !important;
+            opacity: 0.55 !important;
+            font-weight: 300 !important;
+            letter-spacing: 0.2px;
+        }
+
+        /* Glassmorphism Styles */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Typography */
+        h1, h2, h3, h4, h5 {
+            font-family: var(--font-serif);
+            font-weight: 600;
+        }
+
+        /* Navbar Layout */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .nav-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+            color: var(--primary);
+            font-family: var(--font-serif);
+            font-size: 1.55rem;
+            font-weight: 700;
+            transition: var(--transition);
+            letter-spacing: -0.5px;
+        }
+        
+        .nav-logo span {
+            color: var(--text);
+            font-family: var(--font-ui);
+            font-weight: 400;
+            margin-left: 0;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            padding: 0.45rem 1.1rem;
+            border-radius: 20px;
+            font-size: 0.92rem;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+            background-color: rgba(45, 106, 79, 0.05);
+        }
+
+        body.dark-mode .nav-links a:hover {
+            background-color: rgba(82, 183, 136, 0.08);
+        }
+
+        .nav-links a.active {
+            color: var(--primary) !important;
+            background-color: var(--primary-light);
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(45, 106, 79, 0.05);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        /* Buttons */
+        .btn-theme {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.25rem;
+            padding: 0.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            transition: var(--transition);
+        }
+
+        .btn-theme:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white !important;
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 25px;
+            height: 2px;
+            background-color: var(--text);
+            transition: var(--transition);
+        }
+
+        /* Main Content wrapper */
+        main {
+            flex-grow: 1;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 3rem 1.5rem;
+            margin-top: auto;
+            background-color: var(--card-bg);
+            transition: var(--transition);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .footer-logo {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .footer-logo span {
+            color: var(--text);
+            font-family: var(--font-ui);
+            font-weight: 400;
+        }
+
+        .footer-links h4 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links ul a {
+            text-decoration: none;
+            color: var(--text-muted);
+            transition: var(--transition);
+        }
+
+        .footer-links ul a:hover {
+            color: var(--primary);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+            }
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background-color: var(--card-bg);
+                padding: 2rem 1rem;
+                box-shadow: 0 10px 15px rgba(0,0,0,0.05);
+                border-bottom: 1px solid var(--border);
+                gap: 1.5rem;
+                z-index: 99;
+            }
+            .nav-links.active {
+                display: flex;
+            }
+            .hamburger {
+                display: flex;
+            }
+            .nav-actions {
+                margin-left: auto;
+                margin-right: 1rem;
+            }
+        }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="glass">
+        <nav class="navbar">
+            <a href="{% url 'home' %}" class="nav-logo">
+                🌿 Veda<span>Herbs</span>
+            </a>
+            
+            <ul class="nav-links" id="nav-menu">
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="{% url 'plant_list' %}">Plant Library</a></li>
+                <li><a href="{% url 'favourites' %}">Favourites</a></li>
+                <li><a href="{% url 'add_plant' %}">Add Specimen</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <button id="theme-toggle" class="btn-theme" aria-label="Toggle dark mode">☀️</button>
+                <a href="{% url 'plant_list' %}" class="btn-primary">Explore</a>
+            </div>
+
+            <button class="hamburger" id="nav-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Main Section -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div>
+                <div class="footer-logo">🌿 Veda<span>Herbs</span></div>
+                <p style="color: var(--text-muted); font-size: 0.95rem;">
+                    Bridging traditional Ayurvedic wisdom with modern scientific knowledge to make herbal healing accessible to all.
+                </p>
+            </div>
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'plant_list' %}">Plant Library</a></li>
+                    <li><a href="{% url 'favourites' %}">Favourites</a></li>
+                    <li><a href="{% url 'add_plant' %}">Add Specimen</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Ayurvedic Concepts</h4>
+                <ul>
+                    <li><a href="{% url 'plant_list' %}?dosha=vata">Vata Balancing Herbs</a></li>
+                    <li><a href="{% url 'plant_list' %}?dosha=pitta">Pitta Balancing Herbs</a></li>
+                    <li><a href="{% url 'plant_list' %}?dosha=kapha">Kapha Balancing Herbs</a></li>
+                    <li><a href="{% url 'plant_list' %}?use=immunity">Immunity Boosters</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 VedaHerbs. All rights reserved. Built with reverence for Nature.</p>
+        </div>
+    </footer>
+
+
+    <!-- Global Javascript -->
+    <script>
+        // Hamburger Menu
+        const navToggle = document.getElementById('nav-toggle');
+        const navMenu = document.getElementById('nav-menu');
+        if (navToggle && navMenu) {
+            navToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+                const spans = navToggle.querySelectorAll('span');
+                spans[0].style.transform = navMenu.classList.contains('active') ? 'rotate(45deg) translate(5px, 5px)' : 'none';
+                spans[1].style.opacity = navMenu.classList.contains('active') ? '0' : '1';
+                spans[2].style.transform = navMenu.classList.contains('active') ? 'rotate(-45deg) translate(5px, -5px)' : 'none';
+            });
+        }
+
+        // Dark/Light Theme Switching
+        const themeToggle = document.getElementById('theme-toggle');
+        const currentTheme = localStorage.getItem('theme');
+        
+        if (currentTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggle.textContent = '🌙';
+        } else {
+            themeToggle.textContent = '☀️';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            themeToggle.textContent = isDark ? '🌙' : '☀️';
+            // Trigger customized reload event for Chart.js updates if required
+            window.dispatchEvent(new Event('themeChanged'));
+        });
+
+        // LocalStorage Helpers for Favorites, Comparisons, and Recents
+        const VedaStorage = {
+            getFavorites() {
+                return JSON.parse(localStorage.getItem('veda_favorites') || '[]');
+            },
+            toggleFavorite(id) {
+                let favs = this.getFavorites();
+                const index = favs.indexOf(id);
+                if (index > -1) {
+                    favs.splice(index, 1);
+                } else {
+                    favs.push(id);
+                }
+                localStorage.setItem('veda_favorites', JSON.stringify(favs));
+                window.dispatchEvent(new Event('favoritesUpdated'));
+                return index === -1; // returns true if added, false if removed
+            },
+            isFavorite(id) {
+                return this.getFavorites().includes(id);
+            },
+            getCompareList() {
+                return JSON.parse(localStorage.getItem('veda_compare') || '[]');
+            },
+            toggleCompare(id) {
+                let comp = this.getCompareList();
+                const index = comp.indexOf(id);
+                if (index > -1) {
+                    comp.splice(index, 1);
+                } else {
+                    if (comp.length >= 3) {
+                        alert("You can compare a maximum of 3 plants at once.");
+                        return false;
+                    }
+                    comp.push(id);
+                }
+                localStorage.setItem('veda_compare', JSON.stringify(comp));
+                window.dispatchEvent(new Event('compareUpdated'));
+                return index === -1;
+            },
+            inCompare(id) {
+                return this.getCompareList().includes(id);
+            },
+            addRecent(id) {
+                let recents = JSON.parse(localStorage.getItem('veda_recents') || '[]');
+                recents = recents.filter(x => x !== id);
+                recents.unshift(id);
+                if (recents.length > 6) recents.pop();
+                localStorage.setItem('veda_recents', JSON.stringify(recents));
+            },
+            getRecents() {
+                return JSON.parse(localStorage.getItem('veda_recents') || '[]');
+            }
+        };
+
+        // Synchronize Active Navigation Options and Card Clicks
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('#nav-menu a').forEach(link => {
+                const linkHref = link.getAttribute('href');
+                if (currentPath === linkHref) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Global card click listener to open details page
+            document.addEventListener('click', (e) => {
+                const card = e.target.closest('.plant-card');
+                if (card && !e.target.closest('button') && !e.target.closest('a')) {
+                    const id = card.getAttribute('data-id');
+                    if (id) {
+                        window.location.href = `/plants/${id}/`;
+                    }
+                }
+            });
+        });
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
