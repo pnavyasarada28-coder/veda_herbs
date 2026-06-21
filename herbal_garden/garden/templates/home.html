@@ -98,6 +98,27 @@
         gap: 1.5rem;
     }
 
+    .btn-hero-outline {
+        border: 2px solid white;
+        color: white;
+        background: none;
+        padding: 0.7rem 1.8rem;
+        border-radius: 30px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-hero-outline:hover {
+        background-color: white;
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+
     /* Stat Cards Dashboard */
     .dashboard-stats {
         display: grid;
@@ -421,6 +442,11 @@
 
             <div class="hero-buttons">
                 <a href="{% url 'plant_list' %}" class="btn-primary" style="padding: 0.8rem 2.2rem; border-radius: 30px;">Explore Plants</a>
+                {% if not user.is_authenticated %}
+                <a href="{% url 'login' %}" class="btn-hero-outline" style="padding: 0.8rem 2.2rem; border-radius: 30px;">Sign In</a>
+                {% else %}
+                <a href="{% url 'add_plant' %}" class="btn-hero-outline" style="padding: 0.8rem 2.2rem; border-radius: 30px;">Add Specimen</a>
+                {% endif %}
             </div>
         </div>
     </div>
