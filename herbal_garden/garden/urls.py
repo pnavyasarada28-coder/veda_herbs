@@ -9,4 +9,7 @@ urlpatterns = [
     path('plants/<int:id>/', views.plant_detail, name='plant_detail'),
     path('plants/<int:id>/delete/', views.delete_plant, name='delete_plant'),
     path('favourites/', views.favourites, name='favourites'),
+    path('login/', views.login_view, name='login'),
+    path('register/', views.register_view, name='register'),
+    path('logout/', views.logout_view, name='logout'),
 ]

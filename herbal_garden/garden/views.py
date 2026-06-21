@@ -7,6 +7,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Avg, Count, Q
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.decorators import login_required
 from .models import Plant
 from .forms import PlantForm
 
@@ -48,6 +51,7 @@ def home(request):
     })
 
 # Add plant (multi-step form wizard)
+@login_required
 def add_plant(request):
     if request.method == 'POST':
         form = PlantForm(request.POST)
@@ -146,6 +150,7 @@ def favourites(request):
 
 
 # Delete user-added plants
+@login_required
 def delete_plant(request, id):
     plant = get_object_or_404(Plant, id=id)
     
@@ -159,3 +164,40 @@ def delete_plant(request, id):
         return redirect('plant_list')
         
     return redirect('plant_detail', id=id)
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                next_url = request.GET.get('next', 'home')
+                return redirect(next_url)
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
+
+
+def register_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = UserCreationForm()
+    return render(request, 'register.html', {'form': form})
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('home')

@@ -337,6 +337,19 @@
                 margin-right: 1rem;
             }
         }
+
+        /* Responsive Utilities */
+        .mobile-only {
+            display: none !important;
+        }
+        @media (max-width: 768px) {
+            .desktop-only {
+                display: none !important;
+            }
+            .mobile-only {
+                display: block !important;
+            }
+        }
     </style>
     
     {% block extra_head %}{% endblock %}
@@ -355,11 +368,23 @@
                 <li><a href="{% url 'plant_list' %}">Plant Library</a></li>
                 <li><a href="{% url 'favourites' %}">Favourites</a></li>
                 <li><a href="{% url 'add_plant' %}">Add Specimen</a></li>
+                {% if user.is_authenticated %}
+                <li class="mobile-only"><a href="{% url 'logout' %}">Logout ({{ user.username }})</a></li>
+                {% else %}
+                <li class="mobile-only"><a href="{% url 'login' %}">Login</a></li>
+                <li class="mobile-only"><a href="{% url 'register' %}">Register</a></li>
+                {% endif %}
             </ul>
 
             <div class="nav-actions">
                 <button id="theme-toggle" class="btn-theme" aria-label="Toggle dark mode">☀️</button>
-                <a href="{% url 'plant_list' %}" class="btn-primary">Explore</a>
+                {% if user.is_authenticated %}
+                    <span class="desktop-only" style="font-weight: 500; font-size: 0.9rem; color: var(--text-muted); margin-right: 0.25rem;">Hi, {{ user.username }}</span>
+                    <a href="{% url 'logout' %}" class="btn-primary" style="background-color: var(--accent);">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="desktop-only" style="text-decoration: none; color: var(--text-muted); font-weight: 500; font-size: 0.92rem; padding: 0.45rem 1.1rem; margin-right: 0.25rem; transition: var(--transition);">Login</a>
+                    <a href="{% url 'register' %}" class="btn-primary">Register</a>
+                {% endif %}
             </div>
 
             <button class="hamburger" id="nav-toggle" aria-label="Toggle menu">
