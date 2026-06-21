@@ -66,6 +66,7 @@ def add_plant(request):
     return render(request, 'add_plant.html', {'form': form})
 
 # Plant list with search + filter + AJAX support
+@login_required
 def plant_list(request):
     plants = Plant.objects.all()
 
@@ -126,6 +127,7 @@ def plant_list(request):
     })
 
 # Plant detail page with related recommendations
+@login_required
 def plant_detail(request, id):
     plant = get_object_or_404(Plant, id=id)
     
@@ -142,6 +144,7 @@ def plant_detail(request, id):
     })
 
 # Favourites plant collection page
+@login_required
 def favourites(request):
     all_plants = Plant.objects.all()
     return render(request, 'favourites.html', {

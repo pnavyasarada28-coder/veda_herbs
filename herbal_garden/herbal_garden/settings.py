@@ -137,3 +137,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Gemini API Configuration
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+
+# Login configuration
+LOGIN_URL = 'login'
+
