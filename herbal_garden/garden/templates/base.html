@@ -114,24 +114,47 @@
             margin: 0 auto;
         }
 
-        .nav-logo {
+        .nav-logo, .footer-logo {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
             text-decoration: none;
-            color: var(--primary);
-            font-family: var(--font-serif);
-            font-size: 1.55rem;
-            font-weight: 700;
             transition: var(--transition);
             letter-spacing: -0.5px;
         }
-        
-        .nav-logo span {
+
+        .logo-emoji {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            line-height: 1;
+        }
+
+        .logo-text {
+            display: inline-flex;
+            align-items: baseline;
+            font-family: var(--font-serif);
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo-text span {
             color: var(--text);
             font-family: var(--font-ui);
             font-weight: 400;
-            margin-left: 0;
+        }
+
+        .nav-logo .logo-text {
+            font-size: 1.55rem;
+        }
+
+        .footer-logo {
+            margin-bottom: 1rem;
+        }
+
+        .footer-logo .logo-text {
+            font-size: 1.5rem;
         }
 
         .nav-links {
@@ -271,22 +294,7 @@
             gap: 2.5rem;
         }
 
-        .footer-logo {
-            font-family: var(--font-serif);
-            font-size: 1.5rem;
-            color: var(--primary);
-            font-weight: 700;
-            margin-bottom: 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .footer-logo span {
-            color: var(--text);
-            font-family: var(--font-ui);
-            font-weight: 400;
-        }
+        /* Consolidated .footer-logo styling into unified classes above */
 
         .footer-links h4 {
             margin-bottom: 1rem;
@@ -375,7 +383,7 @@
     <header class="glass">
         <nav class="navbar">
             <a href="{% url 'home' %}" class="nav-logo">
-                🌿 Veda<span>Herbs</span>
+                <span class="logo-emoji">🌿</span><span class="logo-text">Veda<span>Herbs</span></span>
             </a>
             
             <ul class="nav-links" id="nav-menu">
@@ -419,7 +427,9 @@
     <footer>
         <div class="footer-content">
             <div>
-                <div class="footer-logo">🌿 Veda<span>Herbs</span></div>
+                <div class="footer-logo">
+                    <span class="logo-emoji">🌿</span><span class="logo-text">Veda<span>Herbs</span></span>
+                </div>
                 <p style="color: var(--text-muted); font-size: 0.95rem;">
                     Bridging traditional Ayurvedic wisdom with modern scientific knowledge to make herbal healing accessible to all.
                 </p>
