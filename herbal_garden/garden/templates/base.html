@@ -132,8 +132,6 @@
         }
 
         .logo-text {
-            display: inline-flex;
-            align-items: baseline;
             font-family: var(--font-serif);
             font-weight: 700;
             color: var(--primary);
@@ -382,9 +380,7 @@
     <!-- Header Navigation -->
     <header class="glass">
         <nav class="navbar">
-            <a href="{% url 'home' %}" class="nav-logo">
-                <span class="logo-emoji">🌿</span><span class="logo-text">Veda<span>Herbs</span></span>
-            </a>
+            <a href="{% url 'home' %}" class="nav-logo"><span class="logo-emoji">🌿</span><span class="logo-text">Veda<span>Herbs</span></span></a>
             
             <ul class="nav-links" id="nav-menu">
                 <li><a href="{% url 'home' %}">Home</a></li>
@@ -427,9 +423,7 @@
     <footer>
         <div class="footer-content">
             <div>
-                <div class="footer-logo">
-                    <span class="logo-emoji">🌿</span><span class="logo-text">Veda<span>Herbs</span></span>
-                </div>
+                <div class="footer-logo"><span class="logo-emoji">🌿</span><span class="logo-text">Veda<span>Herbs</span></span></div>
                 <p style="color: var(--text-muted); font-size: 0.95rem;">
                     Bridging traditional Ayurvedic wisdom with modern scientific knowledge to make herbal healing accessible to all.
                 </p>
